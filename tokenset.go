@@ -58,6 +58,13 @@ func (ts *NeverExpireTokens) Set(tokens []string) {
 	ts.mu.Unlock()
 }
 
+func NewNeverExpireTokens(tokenSize int) *NeverExpireTokens {
+	return &NeverExpireTokens{
+		tokens:    make(map[string]bool),
+		tokenSize: tokenSize,
+	}
+}
+
 type Tokens struct {
 	tokens map[string]time.Time
 	mu     sync.RWMutex
@@ -102,4 +109,12 @@ func (t *Tokens) New() string {
 	t.add(token, expire)
 
 	return token
+}
+
+func NewTokens(tokenSize int, expiration time.Duration) *Tokens {
+	return &Tokens{
+		tokens:     make(map[string]time.Time),
+		tokenSize:  tokenSize,
+		expiration: expiration,
+	}
 }
