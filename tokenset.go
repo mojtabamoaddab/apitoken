@@ -57,3 +57,49 @@ func (ts *NeverExpireTokens) Set(tokens []string) {
 	ts.tokens = tokensMap
 	ts.mu.Unlock()
 }
+
+type Tokens struct {
+	tokens map[string]time.Time
+	mu     sync.RWMutex
+
+	tokenSize  int
+	expiration time.Duration
+}
+
+func (t *Tokens) Add(token string, expire time.Time) {
+	t.add(token, expire)
+}
+
+func (t *Tokens) add(token string, expire time.Time) {
+	t.mu.Lock()
+	t.tokens[token] = expire
+	t.mu.Unlock()
+}
+
+func (t *Tokens) Validate(token string) bool {
+	t.mu.RLock()
+	expire, ok := t.tokens[token]
+	t.mu.RUnlock()
+	if !ok {
+		return false
+	}
+	if expire.Before(time.Now()) {
+		return false
+	}
+	return true
+}
+
+func (t *Tokens) Remove(token string) {
+	t.mu.Lock()
+	delete(t.tokens, token)
+	t.mu.Unlock()
+}
+
+func (t *Tokens) New() string {
+	token := randomString(t.tokenSize)
+	expire := time.Now().Add(t.expiration)
+
+	t.add(token, expire)
+
+	return token
+}
