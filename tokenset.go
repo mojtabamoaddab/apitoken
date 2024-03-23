@@ -7,7 +7,7 @@ import (
 
 type TokenSet interface {
 	Add(string, time.Time)
-	Validate(string)
+	Validate(string) bool
 	Remove(string)
 	New() string
 }
